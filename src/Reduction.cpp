@@ -1,15 +1,24 @@
+#include <dependencies/Orochi/Orochi/OrochiUtils.h>
 #include <src/Error.h>
 #include <src/Kernel.h>
 #include <src/Timer.h>
+
+#include <vector>
+#include <algorithm>
 #include <filesystem>
 #include <string>
 #include <fstream>
 #include <iostream>
 #include <vector>
 #include <optional>
+#include <cstdlib> 
+#include <ctime>
+#include <cassert>
 
 using namespace GpuOptimizationProject;
 
+using u32 = unsigned int;
+using u64 = unsigned long;
 enum Error
 {
 	Success,
@@ -146,6 +155,24 @@ int main(int argc, char* argv[])
 			"../src/ReductionKernel.h",
 			functionName.c_str(),
 			std::nullopt);
+
+		//prepare host data 
+		std::srand((unsigned int)std::time(0));
+		const u32 dataSize = std::pow(2, 22); // 4m ints
+		
+		auto genRandomNumbers = [&]() -> auto {
+			return (std::rand() % 10 + 1);
+		};
+		
+		std::vector<int> h_inData(dataSize);
+		std::generate(h_inData.begin(), h_inData.end(), genRandomNumbers);
+
+		//prepare device data
+		int* d_inData = NULL;
+		OrochiUtils::malloc(d_inData, dataSize);
+		assert(dataSize != NULL);
+		OrochiUtils::copyHtoD(d_inData, h_inData.data(), dataSize);
+
 	}
 	catch (std::exception& e)
 	{
