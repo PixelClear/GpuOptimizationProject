@@ -127,13 +127,30 @@ Error buildKernelFromSrc(Kernel& kernel, oroDevice& device, const std::filesyste
 
 int main(int argc, char* argv[])
 {
-	oroDevice	m_oroDevice;
-	oroCtx		m_oroCtxt;
+	try
+	{
+		oroDevice	orochiDevice;
+		oroCtx		orochiCtxt;
 
-	CHECK_ORO((oroError)oroInitialize((oroApi)(ORO_API_HIP | ORO_API_CUDA), 0));
-	CHECK_ORO(oroInit(0));
-	CHECK_ORO(oroDeviceGet(&m_oroDevice, 0)); // deviceId should be taken from user?
-	CHECK_ORO(oroCtxCreate(&m_oroCtxt, 0, m_oroDevice));
+		CHECK_ORO((oroError)oroInitialize((oroApi)(ORO_API_HIP | ORO_API_CUDA), 0));
+		CHECK_ORO(oroInit(0));
+		CHECK_ORO(oroDeviceGet(&orochiDevice, 0)); // deviceId should be taken from user?
+		CHECK_ORO(oroCtxCreate(&orochiCtxt, 0, orochiDevice));
 
+		Kernel		reductionKernel;
+		std::string functionName = "reduce0";
+
+		buildKernelFromSrc(
+			reductionKernel,
+			orochiDevice,
+			"../src/ReductionKernel.h",
+			functionName.c_str(),
+			std::nullopt);
+	}
+	catch (std::exception& e)
+	{
+		std::cerr << e.what();
+		return -1;
+	}
 	return 0;
 }
