@@ -7,7 +7,11 @@ The main purpose behind this effort is to program and using profiling tools look
 **<ins>Reduce_0 : 3.049 ms</ins>**
 
 Uses strided pattern and shared memory. (add dig showing the pattern).
+
 InputSize: 160 million ints
+
 GPU: 6800W Pro 32GB
+
 Theoretical memory bandwidth: 512 GB/s 
+
 Achieved memory bandwidth: 209.90 GB/s
