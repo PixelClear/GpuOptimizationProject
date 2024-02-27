@@ -140,6 +140,10 @@ int main(int argc, char* argv[])
 	{
 		oroDevice	orochiDevice;
 		oroCtx		orochiCtxt;
+		Timer timer;
+		enum {
+			reductionTime = 0
+		};
 
 		CHECK_ORO((oroError)oroInitialize((oroApi)(ORO_API_HIP | ORO_API_CUDA), 0));
 		CHECK_ORO(oroInit(0));
@@ -147,7 +151,7 @@ int main(int argc, char* argv[])
 		CHECK_ORO(oroCtxCreate(&orochiCtxt, 0, orochiDevice));
 
 		Kernel		reductionKernel;
-		std::string functionName = "reduce0";
+		std::string functionName = "reduce_0";
 
 		buildKernelFromSrc(
 			reductionKernel,
@@ -169,10 +173,50 @@ int main(int argc, char* argv[])
 
 		//prepare device data
 		int* d_inData = NULL;
+		int* d_outData = NULL;
+		
 		OrochiUtils::malloc(d_inData, dataSize);
 		assert(dataSize != NULL);
 		OrochiUtils::copyHtoD(d_inData, h_inData.data(), dataSize);
 
+		constexpr int blockSize = 64;
+		int gridSize = static_cast<int>((dataSize + blockSize - 1) / blockSize);
+		
+		OrochiUtils::malloc(d_outData, gridSize);
+		OrochiUtils::memset(d_outData, 0, sizeof(int) * gridSize);
+		assert(d_outData != NULL);
+		
+		std::vector<int> test(gridSize, 0);
+
+		while (true)
+		{
+			reductionKernel.setArgs({ d_inData, d_outData});
+			timer.measure(reductionTime, [&]() { reductionKernel.launch(gridSize, 1, 1, blockSize, 1, 1, 0, 0); });
+			OrochiUtils::memset(d_inData, 0, sizeof(int) * dataSize);
+			OrochiUtils::copyDtoD(d_inData, d_outData, gridSize);
+			OrochiUtils::copyDtoH(test.data(), d_inData, gridSize);
+			if (gridSize <= 1)
+				break;
+			gridSize = static_cast<int>((gridSize + blockSize - 1) / blockSize);
+		}
+
+		int d_reductionVal = 0;
+		OrochiUtils::copyDtoH(&d_reductionVal, d_inData, 1);
+		assert(d_reductionVal != 0);
+
+		//calculate reduction on cpu 
+		int h_reductionVal = 0;
+		for (size_t i = 0; i < h_inData.size(); i++)
+		{
+			h_reductionVal += h_inData[i];
+		}
+
+		assert(h_reductionVal == d_reductionVal);
+
+		//Always cleanup if you dont may Satan haunt you in dreams!
+		OrochiUtils::free(d_inData);
+		OrochiUtils::free(d_outData);
+		CHECK_ORO(oroCtxDestroy(orochiCtxt));
 	}
 	catch (std::exception& e)
 	{

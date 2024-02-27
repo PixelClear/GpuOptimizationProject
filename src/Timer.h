@@ -11,7 +11,7 @@ namespace GpuOptimizationProject
 class Timer final
 {
   public:
-	bool EnableTimer = false;
+	bool EnableTimer = true;
 
 	using TokenType = int;
 	using TimeUnit	= float;
