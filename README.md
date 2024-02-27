@@ -3,6 +3,15 @@ This is a project that showcases GPU/parallel programming using parallel primiti
 
 The main purpose behind this effort is to program and using profiling tools look at areas for improvement. I find very less examples where we see code profile dumps and explanations on how to make sense of it and find areas of improvement in code.
 
-Os - Ubuntu 20.04 
-Parallel Programming API - HIP 
-Profiling tool - rocProf
+
+**Reduce_0 : 3.049 ms**
+
+Uses strided patter and shared memory.(add dig showing the pattern).
+
+InputSize : 160 million ints
+
+GPU - 6800W Pro 32GB
+
+Theoretical memory bandwidth = 512 GB/s 
+
+Achieved memory bandwidth = 209.90 GB/s
