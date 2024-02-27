@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
 
 		//prepare host data 
 		std::srand((unsigned int)std::time(0));
-		const u32 dataSize = std::pow(2, 22); // 4m ints
+		const u32 dataSize = std::pow(2, 22) * 40; // 160m ints
 		
 		auto genRandomNumbers = [&]() -> auto {
 			return (std::rand() % 10 + 1);
@@ -212,6 +212,8 @@ int main(int argc, char* argv[])
 		}
 
 		assert(h_reductionVal == d_reductionVal);
+
+		std::cout << "Total time in Ms : " << timer.getTimeRecord(reductionTime);
 
 		//Always cleanup if you dont may Satan haunt you in dreams!
 		OrochiUtils::free(d_inData);
